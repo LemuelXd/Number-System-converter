@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Conversion System</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00b8ff;
+            --dark-bg: #0b1020;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --text: #e2e8f0;
+            --error: #ff4d4d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Matrix Background */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, rgba(11, 16, 32, 0.9) 0%, rgba(11, 16, 32, 0.7) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 255, 157, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        /* Input Section */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .base-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .base-option {
+            padding: 0.5rem 1rem;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .base-option:hover {
+            background: rgba(51, 65, 85, 0.7);
+        }
+
+        .base-option.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark-bg);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 1.1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.2);
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            min-height: 1.2rem;
+        }
+
+        /* Output Section */
+        .output-group {
+            margin-bottom: 1rem;
+        }
+
+        .output-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 6px;
+        }
+
+        .base-label {
+            min-width: 80px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .output-value {
+            flex: 1;
+            padding: 0 1rem;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: var(--text);
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .copy-btn:hover {
+            background: rgba(51, 65, 85, 0.7);
+            border-color: var(--primary);
+        }
+
+        .copy-btn.copied {
+            background: var(--primary);
+            color: var(--dark-bg);
+            border-color: var(--primary);
+        }
+
+        /* Install Button */
+        .install-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            transition: transform 0.2s ease;
+        }
+
+        .install-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(0, 255, 157, 0.1);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem 0.5rem;
+                gap: 1rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            .output-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .copy-btn {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- Header -->
+    <header>
+        <h1>Number Conversion System</h1>
+        <p class="subtitle">Convert between binary, octal, decimal, and hexadecimal</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Input Card -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-icon">→</div>
+                <h2 class="card-title">Input Number</h2>
+            </div>
+            
+            <div class="input-group">
+                <label for="number-input">Enter a number:</label>
+                <div class="base-selector">
+                    <div class="base-option active" data-base="2">Binary (Base 2)</div>
+                    <div class="base-option" data-base="8">Octal (Base 8)</div>
+                    <div class="base-option" data-base="10">Decimal (Base 10)</div>
+                    <div class="base-option" data-base="16">Hexadecimal (Base 16)</div>
+                </div>
+                <input type="text" id="number-input" placeholder="Enter a number in the selected base">
+                <div class="error-message" id="error-message"></div>
+            </div>
+        </section>
+
+        <!-- Output Card -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-icon">≡</div>
+                <h2 class="card-title">Converted Values</h2>
+            </div>
+            
+            <div class="output-group">
+                <div class="output-row">
+                    <span class="base-label">Binary:</span>
+                    <span class="output-value" id="binary-output">-</span>
+                    <button class="copy-btn" data-target="binary-output">
+                        <span>Copy</span>
+                    </button>
+                </div>
+                
+                <div class="output-row">
+                    <span class="base-label">Octal:</span>
+                    <span class="output-value" id="octal-output">-</span>
+                    <button class="copy-btn" data-target="octal-output">
+                        <span>Copy</span>
+                    </button>
+                </div>
+                
+                <div class="output-row">
+                    <span class="base-label">Decimal:</span>
+                    <span class="output-value" id="decimal-output">-</span>
+                    <button class="copy-btn" data-target="decimal-output">
+                        <span>Copy</span>
+                    </button>
+                </div>
+                
+                <div class="output-row">
+                    <span class="base-label">Hexadecimal:</span>
+                    <span class="output-value" id="hex-output">-</span>
+                    <button class="copy-btn" data-target="hex-output">
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Install Button -->
+    <button class="install-btn" id="install-btn">Install App</button>
+
+    <!-- Footer -->
+    <footer>
+        <p>Number Conversion System &copy; 2023 | PWA Ready</p>
+    </footer>
+
+    <script>
+        // Matrix Background Animation
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Matrix characters
+        const chars = "01";
+        const charArray = chars.split("");
+        
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        
+        // Create an array of drops
+        const drops = [];
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+        
+        // Matrix animation
+        function drawMatrix() {
+            // Semi-transparent black background for trail effect
+            ctx.fillStyle = "rgba(11, 16, 32, 0.04)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#00ff9d"; // Green text
+            ctx.font = fontSize + "px monospace";
+            
+            // Loop over drops
+            for (let i = 0; i < drops.length; i++) {
+                // Random character
+                const text = charArray[Math.floor(Math.random() * charArray.length)];
+                
+                // Draw the character
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                // Reset drop if it reaches the bottom or randomly
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                // Move the drop down
+                drops[i]++;
+            }
+        }
+        
+        // Animation loop
+        setInterval(drawMatrix, 35);
+
+        // Number Conversion Logic
+        let currentBase = 2;
+        
+        // Base selector functionality
+        document.querySelectorAll('.base-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.base-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+                currentBase = parseInt(this.getAttribute('data-base'));
+                
+                // Update placeholder based on selected base
+                const input = document.getElementById('number-input');
+                switch(currentBase) {
+                    case 2:
+                        input.placeholder = "Enter a binary number (e.g., 1010)";
+                        break;
+                    case 8:
+                        input.placeholder = "Enter an octal number (e.g., 755)";
+                        break;
+                    case 10:
+                        input.placeholder = "Enter a decimal number (e.g., 1234)";
+                        break;
+                    case 16:
+                        input.placeholder = "Enter a hexadecimal number (e.g., 1A3F)";
+                        break;
+                }
+                
+                // Convert if there's already input
+                if (input.value) {
+                    convertNumber();
+                }
+            });
+        });
+        
+        // Input event listener
+        document.getElementById('number-input').addEventListener('input', convertNumber);
+        
+        // Conversion function
+        function convertNumber() {
+            const input = document.getElementById('number-input').value.trim().toUpperCase();
+            const errorMessage = document.getElementById('error-message');
+            
+            // Clear previous error
+            errorMessage.textContent = '';
+            
+            // If input is empty, clear outputs
+            if (!input) {
+                clearOutputs();
+                return;
+            }
+            
+            // Validate input based on current base
+            if (!isValidInput(input, currentBase)) {
+                errorMessage.textContent = getValidationMessage(currentBase);
+                clearOutputs();
+                return;
+            }
+            
+            try {
+                // Convert to decimal first
+                let decimalValue;
+                if (currentBase === 16) {
+                    decimalValue = parseInt(input, 16);
+                } else {
+                    decimalValue = parseInt(input, currentBase);
+                }
+                
+                // If conversion fails
+                if (isNaN(decimalValue)) {
+                    errorMessage.textContent = "Invalid number format for the selected base";
+                    clearOutputs();
+                    return;
+                }
+                
+                // Convert to all bases
+                document.getElementById('binary-output').textContent = decimalValue.toString(2);
+                document.getElementById('octal-output').textContent = decimalValue.toString(8);
+                document.getElementById('decimal-output').textContent = decimalValue.toString(10);
+                document.getElementById('hex-output').textContent = decimalValue.toString(16).toUpperCase();
+            } catch (error) {
+                errorMessage.textContent = "Conversion error: " + error.message;
+                clearOutputs();
+            }
+        }
+        
+        // Input validation
+        function isValidInput(input, base) {
+            const validChars = {
+                2: /^[01]+$/,
+                8: /^[0-7]+$/,
+                10: /^-?\d+$/,
+                16: /^[0-9A-F]+$/
+            };
+            
+            return validChars[base].test(input);
+        }
+        
+        // Validation messages
+        function getValidationMessage(base) {
+            const messages = {
+                2: "Binary numbers can only contain 0 and 1",
+                8: "Octal numbers can only contain digits 0-7",
+                10: "Decimal numbers can only contain digits 0-9",
+                16: "Hexadecimal numbers can only contain digits 0-9 and letters A-F"
+            };
+            
+            return messages[base];
+        }
+        
+        // Clear outputs
+        function clearOutputs() {
+            document.getElementById('binary-output').textContent = '-';
+            document.getElementById('octal-output').textContent = '-';
+            document.getElementById('decimal-output').textContent = '-';
+            document.getElementById('hex-output').textContent = '-';
+        }
+        
+        // Copy to clipboard functionality
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const textToCopy = document.getElementById(targetId).textContent;
+                
+                // Don't copy if there's no value
+                if (textToCopy === '-') return;
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    // Visual feedback
+                    const originalText = this.querySelector('span').textContent;
+                    this.querySelector('span').textContent = 'Copied!';
+                    this.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        this.querySelector('span').textContent = originalText;
+                        this.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            });
+        });
+
+        // PWA Functionality
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // Install prompt
+        let deferredPrompt;
+        const installButton = document.getElementById('install-btn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show the install button
+            installButton.style.display = 'block';
+        });
+        
+        installButton.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+                installButton.style.display = 'none';
+            } else {
+                console.log('User dismissed the install prompt');
+            }
+            
+            // Clear the saved prompt since it can't be used again
+            deferredPrompt = null;
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            // Hide the install button
+            installButton.style.display = 'none';
+            // Clear the deferredPrompt variable
+            deferredPrompt = null;
+            console.log('PWA was installed');
+        });
+    </script>
+</body>
+</html>
