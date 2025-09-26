@@ -2,7 +2,7 @@ const CACHE_NAME = 'number-converter-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
   // Add other assets you want to cache
 ];
 
