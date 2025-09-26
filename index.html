@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Number Conversion System</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.webmanifest">
     <style>
         :root {
             --primary: #00ff9d;
@@ -334,7 +334,7 @@
                 <div class="output-row">
                     <span class="base-label">Binary:</span>
                     <span class="output-value" id="binary-output">-</span>
-                    <button class="copy-btn" data-target="binary-output">
+                    <button type="button" class="copy-btn" data-target="binary-output">
                         <span>Copy</span>
                     </button>
                 </div>
@@ -342,7 +342,7 @@
                 <div class="output-row">
                     <span class="base-label">Octal:</span>
                     <span class="output-value" id="octal-output">-</span>
-                    <button class="copy-btn" data-target="octal-output">
+                    <button type="button" class="copy-btn" data-target="octal-output">
                         <span>Copy</span>
                     </button>
                 </div>
@@ -350,7 +350,7 @@
                 <div class="output-row">
                     <span class="base-label">Decimal:</span>
                     <span class="output-value" id="decimal-output">-</span>
-                    <button class="copy-btn" data-target="decimal-output">
+                    <button type="button" class="copy-btn" data-target="decimal-output">
                         <span>Copy</span>
                     </button>
                 </div>
@@ -358,7 +358,7 @@
                 <div class="output-row">
                     <span class="base-label">Hexadecimal:</span>
                     <span class="output-value" id="hex-output">-</span>
-                    <button class="copy-btn" data-target="hex-output">
+                    <button type="button" class="copy-btn" data-target="hex-output">
                         <span>Copy</span>
                     </button>
                 </div>
@@ -367,7 +367,7 @@
     </main>
 
     <!-- Install Button -->
-    <button class="install-btn" id="install-btn">Install App</button>
+    <button type="button" class="install-btn" id="install-btn">Install App</button>
 
     <!-- Footer -->
     <footer>
@@ -603,29 +603,31 @@
             installButton.style.display = 'block';
         });
         
-        installButton.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            
-            // Show the install prompt
-            deferredPrompt.prompt();
-            
-            // Wait for the user to respond to the prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            
-            if (outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-                installButton.style.display = 'none';
-            } else {
-                console.log('User dismissed the install prompt');
-            }
-            
-            // Clear the saved prompt since it can't be used again
-            deferredPrompt = null;
-        });
-        
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+
+                // Show the install prompt
+                deferredPrompt.prompt();
+
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    installButton.style.display = 'none';
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+
+                // Clear the saved prompt since it can't be used again
+                deferredPrompt = null;
+            });
+        }
+
         window.addEventListener('appinstalled', () => {
             // Hide the install button
-            installButton.style.display = 'none';
+            if (installButton) installButton.style.display = 'none';
             // Clear the deferredPrompt variable
             deferredPrompt = null;
             console.log('PWA was installed');
